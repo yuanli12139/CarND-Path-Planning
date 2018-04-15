@@ -271,6 +271,11 @@ int main() {
                   //do some logic here, lower reference velocity so we don't crash into the car in front of us, could also flag to try changing lanes
                   //ref_vel = 29.5; //mph
                   too_close = true;
+
+                  //left trun
+                  if (lane > 0) {
+                    lane = 0;
+                  }
                 }
               }
             }
