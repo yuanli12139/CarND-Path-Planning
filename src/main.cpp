@@ -205,7 +205,7 @@ int main() {
   int lane = 1;
 
   //have a reference velocity to target
-  double ref_vel = 49.5;
+  double ref_vel = 0.0;
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy,&lane,&ref_vel](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -269,10 +269,17 @@ int main() {
                 //check s values greater than mine and s gap
                 if (check_car_s > car_s && check_car_s - car_s < 30) {
                   //do some logic here, lower reference velocity so we don't crash into the car in front of us, could also flag to try changing lanes
-                  ref_vel = 29.5; //mph
-                  //too_close = true;
+                  //ref_vel = 29.5; //mph
+                  too_close = true;
                 }
               }
+            }
+
+            if (too_close) {
+              ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
+            }
+            else if (ref_vel < 49.5) {
+              ref_vel += .224;
             }
 
             //create a list of widely spaced (x,y) waypoints, evenly spaced at 30m
@@ -368,6 +375,13 @@ int main() {
 
             //fill up the rest of our path planner after filling it with previous points, here we will always output 50 points
             for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
+              // if (too_close) {
+              //   ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
+              // }
+              // else if (ref_vel < 49.5) {
+              //   ref_vel += .224;
+              // }
+
               double N = target_dist / (.02 * ref_vel / 2.24); //mph / 2.24 = m/s
               double x_point = x_add_on + target_x / N;
               double y_point = s(x_point);
