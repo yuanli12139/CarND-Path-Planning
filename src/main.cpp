@@ -275,12 +275,12 @@ int main() {
               }
             }
 
-            if (too_close) {
-              ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
-            }
-            else if (ref_vel < 49.5) {
-              ref_vel += .224;
-            }
+            // if (too_close) {
+            //   ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
+            // }
+            // else if (ref_vel < 49.5) {
+            //   ref_vel += .224;
+            // }
 
             //create a list of widely spaced (x,y) waypoints, evenly spaced at 30m
             //later we will incorporate these waypoints with a spline and fill it in with more points that control speed
@@ -375,12 +375,12 @@ int main() {
 
             //fill up the rest of our path planner after filling it with previous points, here we will always output 50 points
             for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
-              // if (too_close) {
-              //   ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
-              // }
-              // else if (ref_vel < 49.5) {
-              //   ref_vel += .224;
-              // }
+              if (too_close) {
+                ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
+              }
+              else if (ref_vel < 49.5) {
+                ref_vel += .224;
+              }
 
               double N = target_dist / (.02 * ref_vel / 2.24); //mph / 2.24 = m/s
               double x_point = x_add_on + target_x / N;
