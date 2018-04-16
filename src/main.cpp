@@ -300,10 +300,10 @@ int main() {
                 }
               }
               else if (car_lane - lane == -1) {
-                car_left |= check_car_s > car_s - 20 && check_car_s < car_s + 30;
+                car_left |= check_car_s > car_s - 20 && check_car_s < car_s + 40;
               }
               else if (car_lane - lane == 1) {
-                car_right |= check_car_s > car_s - 20 && check_car_s < car_s + 30;
+                car_right |= check_car_s > car_s - 20 && check_car_s < car_s + 40;
               }
             }
 
@@ -311,9 +311,11 @@ int main() {
             if (car_front) {
               if (lane > 0 && !car_left) { //left lane change
                 lane--;
+                prev_car_front_dist = -1;
               }
               else if (lane < 2 && !car_right) { //right lane change 
                 lane++;
+                prev_car_front_dist = -1;
               }
               else {
                 too_close = true;
@@ -325,7 +327,7 @@ int main() {
               if ((lane < 1 && !car_right) || (lane > 1 && !car_left)) {
                 lane = 1; //back to the center lane, giving more flexibity for the next lane change
               }
-              acc = (acc + .224/5 < .224)? acc + .224/5 : .224; //smooth acceleration
+              acc = (acc + .224/5.0 < .224)? acc + .224/5.0 : .224; //smooth acceleration
               prev_car_front_dist = -1;
             }
 
