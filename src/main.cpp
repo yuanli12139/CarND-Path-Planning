@@ -207,7 +207,13 @@ int main() {
   //have a reference velocity to target in mph
   double ref_vel = 0.0;
 
-  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy,&lane,&ref_vel](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  //starting accerlation
+  double acc = 0.0;
+
+  //previous distance to the front car
+  double prev_car_front_dist = -1;
+
+  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy,&lane,&ref_vel, &acc, &prev_car_front_dist](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -288,6 +294,9 @@ int main() {
                 if (check_car_s > car_s && check_car_s - car_s < 30) {
                   car_front |= 1;
                   car_front_dist = check_car_s - car_s;
+                  
+                  if (prev_car_front_dist == -1)
+                    prev_car_front_dist = car_front_dist;
                 }
               }
               else if (car_lane - lane == -1) {
@@ -299,7 +308,6 @@ int main() {
             }
 
             //behavior planning (finite state machine)
-            double acc = .224;
             if (car_front) {
               if (lane > 0 && !car_left) { //left lane change
                 lane--;
@@ -309,14 +317,16 @@ int main() {
               }
               else {
                 too_close = true;
-                acc *= 1 - car_front_dist / 30.0; //smooth acceleration
+                acc = (prev_car_front_dist > car_front_dist) ? .224 * (1 - car_front_dist / 30.0) : 0.0; //smooth acceleration
+                prev_car_front_dist = car_front_dist;
               }
             }
             else {
               if ((lane < 1 && !car_right) || (lane > 1 && !car_left)) {
                 lane = 1; //back to the center lane, giving more flexibity for the next lane change
               }
-              acc = .244;
+              acc = (acc + .224/5 < .224)? acc + .224/5 : .224; //smooth acceleration
+              prev_car_front_dist = -1;
             }
 
             // if (too_close) {
@@ -420,7 +430,7 @@ int main() {
             //fill up the rest of our path planner after filling it with previous points, here we will always output 50 points
             for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
               if (too_close) {
-                ref_vel -= acc; //subtract 5m/s, which is under the 10 requirement
+                ref_vel -= acc; //subtract at most 5m/s, which is under the 10 requirement
               }
               else if (ref_vel < 49.5) {
                 ref_vel += acc;
