@@ -257,6 +257,8 @@ int main() {
             bool car_right = false;
             bool too_close = false;
 
+            double car_front_dist = 30.0;
+
             for (int i = 0; i < sensor_fusion.size(); i++) {
               float d = sensor_fusion[i][6];
               double vx = sensor_fusion[i][3];
@@ -283,7 +285,10 @@ int main() {
               }
 
               if (car_lane == lane) {
-                car_front |= check_car_s > car_s && check_car_s - car_s < 30;
+                if (check_car_s > car_s && check_car_s - car_s < 30) {
+                  car_front |= 1;
+                  car_front_dist = check_car_s - car_s;
+                }
               }
               else if (car_lane - lane == -1) {
                 car_left |= check_car_s > car_s - 30 && check_car_s < car_s + 30;
@@ -294,6 +299,7 @@ int main() {
             }
 
             //behavior planning (finite state machine)
+            double acc = .224;
             if (car_front) {
               if (lane > 0 && !car_left) { //left lane change
                 lane--;
@@ -303,12 +309,14 @@ int main() {
               }
               else {
                 too_close = true;
+                acc *= 1 - car_front_dist / 30.0; //smooth acceleration
               }
             }
             else {
               if ((lane < 1 && !car_right) || (lane > 1 && !car_left)) {
                 lane = 1; //back to the center lane, giving more flexibity for the next lane change
               }
+              acc = .244;
             }
 
             // if (too_close) {
@@ -412,10 +420,10 @@ int main() {
             //fill up the rest of our path planner after filling it with previous points, here we will always output 50 points
             for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
               if (too_close) {
-                ref_vel -= .224; //subtract 5m/s, which is under the 10 requirement
+                ref_vel -= acc; //subtract 5m/s, which is under the 10 requirement
               }
               else if (ref_vel < 49.5) {
-                ref_vel += .224;
+                ref_vel += acc;
               }
 
               double N = target_dist / (.02 * ref_vel / 2.24); //mph / 2.24 = m/s
