@@ -300,10 +300,10 @@ int main() {
                 }
               }
               else if (car_lane - lane == -1) {
-                car_left |= check_car_s > car_s - 30 && check_car_s < car_s + 30;
+                car_left |= check_car_s > car_s - 20 && check_car_s < car_s + 30;
               }
               else if (car_lane - lane == 1) {
-                car_right |= check_car_s > car_s - 30 && check_car_s < car_s + 30;
+                car_right |= check_car_s > car_s - 20 && check_car_s < car_s + 30;
               }
             }
 
