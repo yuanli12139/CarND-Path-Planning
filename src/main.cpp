@@ -251,32 +251,63 @@ int main() {
               car_s = end_path_s;
             }
 
+            //prediction - check the surrounding cars
+            bool car_front = false;
+            bool car_left = false;
+            bool car_right = false;
             bool too_close = false;
 
-            //find ref_vel to use
             for (int i = 0; i < sensor_fusion.size(); i++) {
-              //check if car is in my lane
               float d = sensor_fusion[i][6];
-              if (d < 2 + 4*lane && d > 2 + 4*lane - 2) {
-                double vx = sensor_fusion[i][3];
-                double vy = sensor_fusion[i][4];
-                double check_speed = sqrt(vx*vx + vy*vy);
-                double check_car_s = sensor_fusion[i][5];
+              double vx = sensor_fusion[i][3];
+              double vy = sensor_fusion[i][4];
+              double check_speed = sqrt(vx*vx + vy*vy);
+              double check_car_s = sensor_fusion[i][5];
 
-                //project s value outwards in time, looking at where other cars in the future
-                check_car_s += (double)prev_size * .02 * check_speed; 
+              //project s value outwards in time, looking at where other cars in the future
+              check_car_s += (double)prev_size * .02 * check_speed; 
 
-                //check s values greater than mine and s gap
-                if (check_car_s > car_s && check_car_s - car_s < 30) {
-                  //do some logic here, lower reference velocity so we don't crash into the car in front of us, could also flag to try changing lanes
-                  //ref_vel = 29.5; //mph
-                  too_close = true;
+              //find the car's lane
+              int car_lane = -1;
+              if (d > 0 && d < 4) {
+                car_lane = 0;
+              }
+              else if (d > 4 && d < 8) {
+                car_lane = 1;
+              }
+              else if (d > 8 && d < 12) {
+                car_lane = 2;
+              }
+              else {
+                continue;
+              }
 
-                  //left trun
-                  if (lane > 0) {
-                    lane = 0;
-                  }
-                }
+              if (car_lane == lane) {
+                car_front |= check_car_s > car_s && check_car_s - car_s < 30;
+              }
+              else if (car_lane - lane == -1) {
+                car_left |= check_car_s > car_s - 30 && check_car_s < car_s + 30;
+              }
+              else if (car_lane - lane == 1) {
+                car_right |= check_car_s > car_s - 30 && check_car_s < car_s + 30;
+              }
+            }
+
+            //behavior planning (finite state machine)
+            if (car_front) {
+              if (lane > 0 && !car_left) { //left lane change
+                lane--;
+              }
+              else if (lane < 2 && !car_right) { //right lane change 
+                lane++;
+              }
+              else {
+                too_close = true;
+              }
+            }
+            else {
+              if ((lane < 1 && !car_right) || (lane > 1 && !car_left)) {
+                lane = 1; //back to the center lane, giving more flexibity for the next lane change
               }
             }
 
