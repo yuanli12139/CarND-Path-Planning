@@ -1,6 +1,24 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
+[//]: # (Image References)
+
+[image1]: ./screenshot.png "Screenshot"
+
+## Reflection
+The car is able to drive 75 miles at best without incident in the test runs.
+
+![alt text][image1]
+
+### Prediction
+Prediction is done by looking through the sensor funsion data of surrounding cars and marking car flags that could potentially cause incident. Since other cars could change lanes too, also pay attention to cars that are two-lane away from the ego-car. 
+
+### Behavior Planning
+Behavior Planning is done using finite state machine, changing lanes and slowing down according to the prediction from sensor fusion data.
+
+### Trajectory Generation
+Using the spline library to fit the waypoints generated from future path referred from previous path and behavior planning. Also, adjusting accelation to make the car drive more smoothly under the speed limit. 
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).
 
