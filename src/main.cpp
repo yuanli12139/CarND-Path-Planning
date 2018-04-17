@@ -306,7 +306,7 @@ int main() {
                 car_right |= check_car_s > car_s - 20 && check_car_s < car_s + 45;
               }
 
-              //try to avoid the sudden lane change of another car
+              //try to avoid the sudden lane change of another car from two-lane away
               else if (car_lane - lane == -2) {
                 car_left |= check_car_s > car_s - 10 && check_car_s < car_s + 30;
               }
