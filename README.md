@@ -1,4 +1,4 @@
-# CarND-Path-Planning-Project
+# Path Planning
 Self-Driving Car Engineer Nanodegree Program
 
 [//]: # (Image References)
